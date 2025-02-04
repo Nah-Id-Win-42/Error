@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Melvin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #70c5ce;
+            font-family: Arial, sans-serif;
+        }
+
+        #game {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            background-color: #70c5ce;
+            border: 2px solid #000;
+            overflow: hidden;
+        }
+
+        #melvin {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('https://via.placeholder.com/40'); /* Replace with Melvin's image URL */
+            background-size: cover;
+            top: 50%;
+            left: 50px;
+        }
+
+        #obstacles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .obstacle {
+            position: absolute;
+            width: 60px;
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <div id="melvin"></div>
+        <div id="obstacles"></div>
+    </div>
+    <script>
+        const melvin = document.getElementById('melvin');
+        const obstacles = document.getElementById('obstacles');
+        let gravity = 0.6;
+        let velocity = 0;
+        let position = 300;
+        let gameOver = false;
+        let obstacleInterval;
+        let score = 0;
+
+        document.addEventListener('keydown', flap);
+
+        function flap() {
+            if (!gameOver) {
+                velocity = -10;
+            }
+        }
+
+        function update() {
+            if (gameOver) return;
+
+            velocity += gravity;
+            position += velocity;
+
+            if (position <= 0) {
+                position = 0;
+                velocity = 0;
+            }
+
+            if (position + melvin.offsetHeight >= 600) {
+                position = 600 - melvin.offsetHeight;
+                gameOver = true;
+                alert('Game Over! Score: ' + score);
+                clearInterval(obstacleInterval);
+            }
+
+            melvin.style.top = position + 'px';
+
+            requestAnimationFrame(update);
+        }
+
+        function createObstacle() {
+            if (gameOver) return;
+
+            const obstacleTop = Math.random() * (600 - 200);
+            const obstacleBottom = 600 - obstacleTop - 150;
+
+            const topObstacle = document.createElement('div');
+            topObstacle.classList.add('obstacle');
+            topObstacle.style.height = obstacleTop + 'px';
+            topObstacle.style.left = '400px';
+            topObstacle.style.top = '0px';
+
+            const bottomObstacle = document.createElement('div');
+            bottomObstacle.classList.add('obstacle');
+            bottomObstacle.style.height = obstacleBottom + 'px';
+            bottomObstacle.style.left = '400px';
+            bottomObstacle.style.bottom = '0px';
+
+            obstacles.appendChild(topObstacle);
+            obstacles.appendChild(bottomObstacle);
+
+            let obstaclePosition = 400;
+
+            function moveObstacle() {
+                if (gameOver) return;
+
+                obstaclePosition -= 2;
+                topObstacle.style.left = obstaclePosition + 'px';
+                bottomObstacle.style.left = obstaclePosition + 'px';
+
+                if (obstaclePosition < -60) {
+                    obstacles.removeChild(topObstacle);
+                    obstacles.removeChild(bottomObstacle);
+                    score++;
+                }
+
+                if (
+                    obstaclePosition < 90 && obstaclePosition > 50 &&
+                    (position < obstacleTop || position + 40 > 600 - obstacleBottom)
+                ) {
+                    gameOver = true;
+                    alert('Game Over! Score: ' + score);
+                    clearInterval(obstacleInterval);
+                }
+
+                if (!gameOver) {
+                    requestAnimationFrame(moveObstacle);
+                }
+            }
+
+            moveObstacle();
+        }
+
+        obstacleInterval = setInterval(createObstacle, 2000);
+        update();
+    </script>
+</body>
+</html>
